@@ -1,0 +1,614 @@
+﻿@using Core.Concretes.DTOs
+@model ProductDetailDto
+
+@{
+    ViewData["Title"] = Model?.Name ?? "Ürün Detayı";
+}
+
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --dark: #343a40;
+        --light: #f8f9fa;
+    }
+
+    body {
+        background-color: var(--light);
+    }
+
+    .product-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .product-gallery {
+        position: relative;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: 12px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+
+        .main-image:hover {
+            transform: scale(1.02);
+        }
+
+    .thumbnail-gallery {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .thumbnail {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 3px solid #ddd;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
+        }
+
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb-item {
+        color: #6c757d;
+    }
+
+        .breadcrumb-item a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+            .breadcrumb-item a:hover {
+                color: #0056b3;
+            }
+
+    .product-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 15px;
+        margin-top: 10px;
+    }
+
+    .product-brand {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .brand-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary) 0%, #0056b3 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    .rating-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .stars {
+        font-size: 18px;
+        color: #ffc107;
+        letter-spacing: 2px;
+    }
+
+    .rating-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .review-count {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .price-section {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border-left: 5px solid var(--primary);
+    }
+
+    .price-container {
+        display: flex;
+        align-items: baseline;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .current-price {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--success);
+    }
+
+    .original-price {
+        font-size: 24px;
+        color: #6c757d;
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+
+    .discount-badge {
+        background: var(--danger);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 16px;
+        animation: pulse 2s infinite;
+    }
+
+
+    }
+
+    .stock-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .stock-badge {
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .in-stock {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .out-of-stock {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+        .action-buttons .btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+    .btn-add-cart {
+        background: linear-gradient(135deg, var(--primary) 0%, #0056b3 100%);
+        color: white;
+    }
+
+        .btn-add-cart:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 123, 255, 0.4);
+            color: white;
+        }
+
+        .btn-add-cart:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-wishlist {
+        background: white;
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+        .btn-wishlist:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .description-section {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid var(--primary);
+    }
+
+        .description-section h5 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .description-section p {
+            line-height: 1.8;
+            color: #555;
+        }
+
+    .reviews-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .reviews-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .review-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .review-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+
+    .reviewer-name {
+        font-weight: 700;
+        color: var(--dark);
+        font-size: 16px;
+    }
+
+    .review-date {
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .review-rating {
+        font-size: 16px;
+        color: #ffc107;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+    }
+
+    .review-comment {
+        color: #555;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .no-reviews {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+        .no-reviews i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .back-button:hover {
+            color: #0056b3;
+            transform: translateX(-5px);
+        }
+
+    .error-alert {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+        .error-alert i {
+            margin-right: 10px;
+        }
+</style>
+
+<div class="container py-4">
+    <!-- Geri Butonu -->
+    <a href="@Url.Action("Index", "Home")" class="back-button">
+        <i class="fas fa-arrow-left"></i> Ürünlere Dön
+    </a>
+
+    @if (Model == null)
+    {
+        <div class="error-alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Ürün Bulunamadı!</strong>
+            <p>İstediğiniz ürün henüz mevcut değildir.</p>
+        </div>
+    }
+    else
+    {
+        <div class="product-container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Ana Sayfa</a></li>
+                    <li class="breadcrumb-item"><a href="#">@Model.CategoryName</a></li>
+                    <li class="breadcrumb-item"><a href="#">@Model.SubCategoryName</a></li>
+                    <li class="breadcrumb-item active">@Model.Name</li>
+                </ol>
+            </nav>
+
+            <div class="row">
+                <!-- SOL TARAF - RESİMLER -->
+                <div style="background: yellow; padding: 10px; margin-bottom: 10px;">
+                    <p><strong>Debug Info:</strong></p>
+                    <p>CoverImageUrl: @Model.CoverImageUrl</p>
+                    <p>ImageUrls Count: @Model.ImageUrls?.Count ?? 0</p>
+                    @if (Model.ImageUrls?.Any() == true)
+                    {
+                        <p>ImageUrls:</p>
+                        <ul>
+                            @foreach (var url in Model.ImageUrls)
+                            {
+                                <li>@url</li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="product-gallery">
+                        <!-- Ana Resim -->
+                        <img id="mainImage"
+                             src="@(Model.CoverImageUrl ?? "https://via.placeholder.com/500x500?text=No+Image")"
+                             alt="@Model.Name"
+                             class="main-image">
+
+                        <!-- Küçük Resimler -->
+                        @if (Model.ImageUrls != null && Model.ImageUrls.Any())
+                        {
+                            <div class="thumbnail-gallery">
+                                @foreach (var imageUrl in Model.ImageUrls)
+                                {
+                                    <img src="@imageUrl"
+                                         alt="@Model.Name"
+                                         class="thumbnail"
+                                         onclick="document.getElementById('mainImage').src='@imageUrl'; document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- SAĞ TARAF - ÜRÜNBİLGİLERİ -->
+                <div class="col-lg-6">
+                    <!-- Kategori -->
+                    <div class="breadcrumb">
+                        <a href="#">@Model.CategoryName</a> >
+                        <a href="#">@Model.SubCategoryName</a>
+                    </div>
+
+                    <!-- Ürün Adı -->
+                    <h1 class="product-title">@Model.Name</h1>
+
+                    <!-- Marka -->
+                    <div class="product-brand">
+                        <i class="fas fa-industry"></i>
+                        <span class="brand-badge">@Model.BrandName</span>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="rating-section">
+                        <div class="stars" title="@Model.Rating / 5">
+                            @{
+                                int fullStars = (int)Model.Rating;
+                                bool hasHalfStar = Model.Rating % 1 > 0;
+                                int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                                for (int i = 0; i < fullStars; i++)
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+                                if (hasHalfStar)
+                                {
+                                    <i class="fas fa-star-half-alt"></i>
+                                }
+                                for (int i = 0; i < emptyStars; i++)
+                                {
+                                    <i class="far fa-star"></i>
+                                }
+                            }
+                        </div>
+                        <span class="rating-value">@Model.Rating.ToString("F1")</span>
+                        <span class="review-count">(@Model.ReviewCount yorum)</span>
+                    </div>
+
+                    <!-- Fiyat Bölümü -->
+                    <div class="price-section">
+                        <div class="price-container">
+                            <span class="current-price">
+                                @Model.DiscountedPrice.ToString("C2")
+                            </span>
+                            @if (Model.DiscountRate > 0)
+                            {
+                                <span class="original-price">
+                                    @Model.Price.ToString("C2")
+                                </span>
+                                <span class="discount-badge">
+                                    -%@Model.DiscountRate.ToString("F0")
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Stok Bilgisi -->
+                    <div class="stock-info">
+                        @if (Model.Stock > 0)
+                        {
+                            <span class="stock-badge in-stock">
+                                <i class="fas fa-check-circle"></i>
+                                Stokta Var (@Model.Stock adet)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="stock-badge out-of-stock">
+                                <i class="fas fa-times-circle"></i>
+                                Stokta Yok
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        @if (Model.Stock > 0)
+                        {
+                            <button class="btn btn-add-cart">
+                                <i class="fas fa-shopping-cart"></i> Sepete Ekle
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-add-cart" disabled>
+                                <i class="fas fa-ban"></i> Stok Yok
+                            </button>
+                        }
+                        <button class="btn btn-wishlist">
+                            <i class="fas fa-heart"></i> Favorilere Ekle
+                        </button>
+                    </div>
+
+                    <!-- Açıklama -->
+                    <div class="description-section">
+                        <h5><i class="fas fa-info-circle"></i> Ürün Açıklaması</h5>
+                        <p>@Model.Description</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YORUMLAR SEKSİYONU -->
+            <div class="reviews-section">
+                <h2 class="reviews-title">
+                    <i class="fas fa-comments"></i>
+                    Müşteri Yorumları (@Model.ReviewCount)
+                </h2>
+
+                @if (Model.Reviews != null && Model.Reviews.Any())
+                {
+                    <div class="row">
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedDate))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="review-card">
+                                    <div class="review-header">
+                                        <div>
+                                            <div class="reviewer-name">
+                                                <i class="fas fa-user-circle"></i> @review.CustomerName
+                                            </div>
+                                            <div class="review-rating">
+                                                @{
+                                                    for (int i = 0; i < review.Vote; i++)
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    for (int i = review.Vote; i < 5; i++)
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="review-date">
+                                            <i class="fas fa-calendar-alt"></i> @review.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                    </div>
+                                    <div class="review-comment">
+                                        @review.Comment
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-reviews">
+                        <i class="fas fa-comment-dots"></i>
+                        <h5>Henüz Yorum Yapılmamış</h5>
+                        <p>Bu ürün hakkında ilk yorumu yapan siz olun!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

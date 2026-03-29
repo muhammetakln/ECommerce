@@ -14,8 +14,4 @@
     <ProjectReference Include="..\Utils\Utils.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Abstracts\IServices\" />
-  </ItemGroup>
-
 </Project>

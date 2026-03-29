@@ -79,7 +79,7 @@ namespace Utils.Responses
         /// <param name="statusCode">HTTP durum kodu</param>
         /// <param name="message">Açıklayıcı mesaj</param>
         /// <param name="errors">Hata mesajları listesi</param>
-        protected Result(bool isSuccess, int statusCode, string? message = null, IEnumerable<string> errors = null)
+        protected Result(bool isSuccess, int statusCode, string? message = null, IEnumerable<string>? errors = null)
         {
             IsSuccess = isSuccess;
             Message = message ?? string.Empty;
@@ -115,15 +115,17 @@ namespace Utils.Responses
 
         /// <summary>
         /// Başarısız sonuç döndüren Result oluşturur (tek hata mesajıyla).
+        /// Basit hata durumlarında kullanılır. Mesaj otomatik olarak errors listesine eklenir.
         /// </summary>
         /// <param name="message">Hata mesajı</param>
         /// <param name="statusCode">HTTP durum kodu (varsayılan: 400 Bad Request)</param>
         /// <returns>Başarısız Result nesnesi</returns>
         /// <example>
         /// Result.Failure("Sunucuda hata oluştu", 500);
+        /// Result.Failure("Veritabanı bağlantısı başarısız", 500);
         /// </example>
         public static Result Failure(string message, int statusCode = 400)
-            => new(false, statusCode, message);
+            => new(false, statusCode, message, new[] { message });
     }
 
     /// <summary>
@@ -148,7 +150,7 @@ namespace Utils.Responses
         /// <param name="statusCode">HTTP durum kodu</param>
         /// <param name="message">Açıklayıcı mesaj</param>
         /// <param name="errors">Hata mesajları listesi</param>
-        private Result(T data, bool isSuccess, int statusCode, string? message = null, IEnumerable<string>? errors = null)
+        private Result(T? data, bool isSuccess, int statusCode, string? message = null, IEnumerable<string>? errors = null)
             : base(isSuccess, statusCode, message, errors)
         {
             Data = data;
@@ -165,22 +167,46 @@ namespace Utils.Responses
         /// <example>
         /// var user = new User { Id = 1, Name = "Ahmet" };
         /// Result<User>.Success(user, 200, "Kullanıcı bulundu");
+        /// 
+        /// var products = new List<Product> { ... };
+        /// Result<List<Product>>.Success(products, 200, "Ürünler yüklendi");
         /// </example>
         public static Result<T> Success(T data, int statusCode = 200, string? message = null)
             => new(data, true, statusCode, message);
 
         /// <summary>
-        /// Başarısız sonuç döndüren generic Result oluşturur.
-        /// Veri bulunamazsa, validation hatası olursa kullanılır.
+        /// Başarısız sonuç döndüren generic Result oluşturur (hata listesiyle).
+        /// Validation hataları gibi birden fazla hata durumunda kullanılır.
         /// </summary>
         /// <param name="errors">Hata mesajlarının listesi</param>
         /// <param name="statusCode">HTTP durum kodu (varsayılan: 400 Bad Request)</param>
         /// <param name="message">Opsiyonel hata mesajı</param>
         /// <returns>Başarısız generic Result nesnesi</returns>
         /// <example>
-        /// Result<User>.Failure(["Kullanıcı bulunamadı"], 404);
+        /// var errors = new[] { "Email geçersiz", "Şifre çok kısa" };
+        /// Result<User>.Failure(errors, 400, "Kullanıcı oluşturulamadı");
+        /// 
+        /// Result<List<Product>>.Failure(["Ürün bulunamadı"], 404);
         /// </example>
         public static Result<T> Failure(IEnumerable<string> errors, int statusCode = 400, string? message = null)
             => new(default, false, statusCode, message, errors);
+
+        /// <summary>
+        /// Başarısız sonuç döndüren generic Result oluşturur (tek hata mesajıyla).
+        /// Basit hata durumlarında kullanılır. Mesaj otomatik olarak errors listesine eklenir.
+        /// Bu overload hata listesiyle uğraşmak istemediğinizde çok pratiktir.
+        /// </summary>
+        /// <param name="message">Hata mesajı</param>
+        /// <param name="statusCode">HTTP durum kodu (varsayılan: 400 Bad Request)</param>
+        /// <returns>Başarısız generic Result nesnesi</returns>
+        /// <example>
+        /// Result<User>.Failure("Kullanıcı bulunamadı", 404);
+        /// 
+        /// Result<List<Product>>.Failure("Veritabanı hatası oluştu", 500);
+        /// 
+        /// Result<IEnumerable<ProductListItemDto>>.Failure(result.Message, result.StatusCode);
+        /// </example>
+        public static Result<T> Failure(string message, int statusCode = 400)
+            => new(default, false, statusCode, message, new[] { message });
     }
 }

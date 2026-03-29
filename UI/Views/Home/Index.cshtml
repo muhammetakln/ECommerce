@@ -1,0 +1,504 @@
+﻿@using Core.Concretes.DTOs
+@model IEnumerable<ProductListItemDto>
+
+@{
+    ViewData["Title"] = "Ürün Listesi";
+}
+
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --dark: #343a40;
+        --light: #f8f9fa;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 30px 0;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #0056b3 100%);
+        color: white;
+        padding: 50px 0;
+        margin-bottom: 40px;
+        box-shadow: 0 5px 20px rgba(0, 123, 255, 0.3);
+    }
+
+        .page-header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+    .filters-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-title {
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--dark);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        background: var(--light);
+        border: 2px solid #ddd;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+    .products-container {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.2);
+        }
+
+    .product-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: var(--light);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.08);
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--danger);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .product-badge.discount {
+            background: var(--danger);
+        }
+
+        .product-badge.new {
+            background: var(--success);
+        }
+
+    .product-info {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-category {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .product-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 10px;
+        line-height: 1.4;
+        min-height: 40px;
+    }
+
+        .product-name:hover {
+            color: var(--primary);
+        }
+
+    .product-brand {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .brand-tag {
+        background: #e7f3ff;
+        color: var(--primary);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+
+    .stars {
+        color: #ffc107;
+        letter-spacing: 1px;
+    }
+
+    .rating-count {
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .product-price {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 15px;
+        margin-top: auto;
+    }
+
+    .current-price {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--success);
+    }
+
+    .original-price {
+        font-size: 14px;
+        color: #6c757d;
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-details {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+        .btn-details:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            color: white;
+        }
+
+    .btn-wishlist {
+        background: white;
+        border: 2px solid var(--danger);
+        color: var(--danger);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-wishlist:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+    .pagination-section {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+    }
+
+    .pagination-btn {
+        background: white;
+        border: 2px solid #ddd;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+        .pagination-btn:hover,
+        .pagination-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+    
+
+    .page-header h1 {
+        font-size: 28px;
+    }
+
+    .product-card {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+    }
+</style>
+
+<div class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-shopping-bag"></i> Ürün Kataloğu</h1>
+        <p>Binlerce ürün arasından seçiminizi yapın</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- FILTERLER -->
+    <div class="filters-section">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i> Filtrele
+        </div>
+        <div class="filter-group">
+            <button class="filter-btn active" onclick="filterProducts('all')">
+                <i class="fas fa-th"></i> Tümü
+            </button>
+            <button class="filter-btn" onclick="filterProducts('discount')">
+                <i class="fas fa-tag"></i> İndirimli
+            </button>
+            <button class="filter-btn" onclick="filterProducts('new')">
+                <i class="fas fa-star"></i> Yeni
+            </button>
+            <button class="filter-btn" onclick="filterProducts('toprated')">
+                <i class="fas fa-crown"></i> Çok Puanlı
+            </button>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="products-container">
+            <div class="section-title">
+                <i class="fas fa-boxes"></i> Öne Çıkan Ürünler
+                <span style="margin-left: auto; font-size: 16px; color: #6c757d;">
+                    @Model.Count() ürün
+                </span>
+            </div>
+
+            <div class="products-grid">
+                @foreach (var product in Model)
+                {
+                    <div class="product-card" data-discount="@product.ReviewCount" data-rating="@product.Rating">
+                        <!-- Ürün Resmi -->
+                        <div class="product-image-wrapper">
+                            <img src="@(product.CoverImageUrl ?? "https://via.placeholder.com/400x300?text=No+Image")"
+                                 alt="@product.Name"
+                                 class="product-image"
+                                 loading="lazy">
+
+                            @if (product.ReviewCount > 0)
+                            {
+                                <div class="product-badge discount">
+                                    <i class="fas fa-bolt"></i> -@((product.Price - product.ReviewCount) % 100)%
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Ürün Bilgileri -->
+                        <div class="product-info">
+                            <!-- Kategori -->
+                            <div class="product-category">
+                                @product.CategoryName
+                            </div>
+
+                            <!-- Ürün Adı -->
+                            <h3 class="product-name">@product.Name</h3>
+
+                            <!-- Marka -->
+                            <div class="product-brand">
+                                <i class="fas fa-industry"></i>
+                                <span class="brand-tag">@product.BrandName</span>
+                            </div>
+
+                            <!-- Rating -->
+                            <div class="product-rating">
+                                <div class="stars" title="@product.Rating / 5">
+                                    @{
+                                        int fullStars = (int)product.Rating;
+                                        bool hasHalfStar = product.Rating % 1 > 0;
+                                        int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+                                        for (int i = 0; i < fullStars; i++)
+                                        {
+                                            <i class="fas fa-star"></i>
+                                        }
+                                        if (hasHalfStar)
+                                        {
+                                            <i class="fas fa-star-half-alt"></i>
+                                        }
+                                        for (int i = 0; i < emptyStars; i++)
+                                        {
+                                            <i class="far fa-star"></i>
+                                        }
+                                    }
+                                </div>
+                                <span class="rating-count">(@product.ReviewCount)</span>
+                            </div>
+
+                            <!-- Fiyat -->
+                            <div class="product-price">
+                                <span class="current-price">@product.Price.ToString("C2")</span>
+                            </div>
+
+                            <!-- Butonlar -->
+                            <div class="product-actions">
+                                <a href="@Url.Action("Details", "Home", new { id = product.Id })"
+                                   class="btn-details">
+                                    <i class="fas fa-eye"></i> Detaylar
+                                </a>
+                                <button class="btn-wishlist" title="Favorilere Ekle">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>Ürün Bulunamadı</h3>
+            <p>Seçtiğiniz kategoride ürün bulunmamaktadır.</p>
+        </div>
+    }
+</div>
+
+<script>
+    function filterProducts(type) {
+        console.log('Filter:', type);
+        // Filter işlemi burada yapılacak
+
+        // Aktif butonu değiştir
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.closest('.filter-btn').classList.add('active');
+    }
+
+    // Wishlist butonu işlemi
+    document.querySelectorAll('.btn-wishlist').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            this.style.opacity = this.classList.contains('active') ? '1' : '0.7';
+        });
+    });
+</script>
