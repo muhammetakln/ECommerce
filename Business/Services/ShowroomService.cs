@@ -17,6 +17,9 @@ namespace Business.Services
             this.mapper = mapper;
         }
 
+        /// <summary>
+        /// Aktif ve silinmemiş tüm ürünleri getirir
+        /// </summary>
         public async Task<IResult<IEnumerable<ProductListItemDto>>> GetProductAsync()
         {
             var result = await unitOfWork.ProductRepository.FindManyAsync(
@@ -26,7 +29,6 @@ namespace Business.Services
 
             if (!result.IsSuccess)
             {
-                // ✅ Artık doğrudan çalışır
                 return Result<IEnumerable<ProductListItemDto>>.Failure(
                     result.Message ?? "Ürünler yüklenemedi",
                     result.StatusCode
@@ -37,37 +39,13 @@ namespace Business.Services
             return Result<IEnumerable<ProductListItemDto>>.Success(products, 200, "Ürünler yüklendi");
         }
 
-        public async Task<IResult<ProductDetailDto>> GetProductByIdAsync(int id)
-        {
-            var result = await unitOfWork.ProductRepository.FindManyAsync(
-                x => x.Id == id && x.Active && !x.Deleted,
-                "SubCategory", "Brand", "Images", "ProductReviews"
-            );
-            if (!result.IsSuccess)
-            {
-                return Result<ProductDetailDto>.Failure(
-                    result.Message ?? "Ürün bulunamadı",
-                    result.StatusCode
-                );
-            }
-            var product = result.Data.FirstOrDefault();
-            return Result<ProductDetailDto>.Success(
-                mapper.Map<ProductDetailDto>(product),
-                200,
-                "Ürün detayları yüklendi"
-            );
-
-
-        }
-
-
-
-      
-           public async Task<IResult<ProductDetailDto>> GetProductDetailAsync(int id)
+        /// <summary>
+        /// Belirtilen ID'ye sahip ürünün detay bilgilerini getirir
+        /// </summary>
+        public async Task<IResult<ProductDetailDto>> GetProductDetailAsync(int id)
         {
             try
             {
-                // ✅ FindFirstAsync kullan (tek ürün getir)
                 var result = await unitOfWork.ProductRepository.FindFirstAsync(
                     x => x.Id == id && x.Active && !x.Deleted,
                     "SubCategory",
@@ -80,10 +58,7 @@ namespace Business.Services
 
                 if (!result.IsSuccess)
                 {
-                    return Result<ProductDetailDto>.Failure(
-                        "Ürün bulunamadı",
-                        404
-                    );
+                    return Result<ProductDetailDto>.Failure("Ürün bulunamadı", 404);
                 }
 
                 var productDto = mapper.Map<ProductDetailDto>(result.Data);
@@ -91,14 +66,99 @@ namespace Business.Services
             }
             catch (Exception ex)
             {
-                return Result<ProductDetailDto>.Failure(
-                    $"Hata: {ex.Message}",
-                    500
+                return Result<ProductDetailDto>.Failure($"Hata: {ex.Message}", 500);
+            }
+        }
+
+        /// <summary>
+        /// Ürünü günceller (Edit işlemi)
+        /// Admin tarafından kullanılır
+        /// </summary>
+        public async Task<IResult> UpdateProductAsync(int id, ProductDetailDto dto)
+        {
+            try
+            {
+                // Ürünü bul
+                var result = await unitOfWork.ProductRepository.FindFirstAsync(
+                    x => x.Id == id,
+                    "SubCategory", "Brand", "Images", "ProductReviews"
                 );
+
+                if (!result.IsSuccess)
+                {
+                    return Result.Failure("Ürün bulunamadı", 404);
+                }
+
+                var product = result.Data;
+
+                // Güncellenecek alanları ayarla
+                product.Name = dto.Name;
+                product.Description = dto.Description;
+                product.Price = dto.Price;
+                product.StockQuantity = dto.Stock;
+                product.Active = dto.Active;
+                product.UpdatedAt = DateTime.UtcNow;
+
+                // Güncelle
+                var updateResult = await unitOfWork.ProductRepository.UpdateAsync(product);
+
+                if (!updateResult.IsSuccess)
+                {
+                    return Result.Failure("Ürün güncellenemedi", 500);
+                }
+
+                // Veritabanına kaydet
+                await unitOfWork.SaveChangesAsync();
+
+                return Result.Success(200, "Ürün başarıyla güncellendi");
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Hata: {ex.Message}", 500);
+            }
+        }
+
+        /// <summary>
+        /// Ürünü siler (soft delete - Deleted flag'ı true yapılır)
+        /// Admin tarafından kullanılır
+        /// </summary>
+        public async Task<IResult> DeleteProductAsync(int id)
+        {
+            try
+            {
+                // Ürünü bul
+                var result = await unitOfWork.ProductRepository.FindFirstAsync(
+                    x => x.Id == id
+                );
+
+                if (!result.IsSuccess)
+                {
+                    return Result.Failure("Ürün bulunamadı", 404);
+                }
+
+                var product = result.Data;
+
+                // Soft Delete - Deleted flag'ını true yap
+                product.Deleted = true;
+                product.UpdatedAt = DateTime.UtcNow;
+
+                // Güncelle
+                var updateResult = await unitOfWork.ProductRepository.UpdateAsync(product);
+
+                if (!updateResult.IsSuccess)
+                {
+                    return Result.Failure("Ürün silinemedi", 500);
+                }
+
+                // Veritabanına kaydet
+                await unitOfWork.SaveChangesAsync();
+
+                return Result.Success(200, "Ürün başarıyla silindi");
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Hata: {ex.Message}", 500);
             }
         }
     }
 }
-
-
-

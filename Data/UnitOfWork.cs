@@ -2,6 +2,7 @@
 using Core.Abstracts;
 using Core.Abstracts.IRepositories;
 using Data.Repositories;
+using SQLitePCL;
 using System.Xml.Linq;
 using Utils.Responses;
 
@@ -52,6 +53,11 @@ namespace Data
         public async ValueTask DisposeAsync()
         {
             await context.DisposeAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await context.SaveChangesAsync();
         }
     }
 }

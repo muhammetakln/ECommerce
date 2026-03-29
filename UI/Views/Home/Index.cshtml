@@ -2,7 +2,7 @@
 @model IEnumerable<ProductListItemDto>
 
 @{
-    ViewData["Title"] = "Ürün Listesi";
+    ViewData["Title"] = "Product List";
 }
 
 <style>
@@ -273,6 +273,24 @@
             color: white;
         }
 
+        .btn-details.edit {
+            background: var(--warning);
+            color: #000;
+        }
+
+            .btn-details.edit:hover {
+                background: #e0a800;
+                color: #000;
+            }
+
+        .btn-details.delete {
+            background: var(--danger);
+        }
+
+            .btn-details.delete:hover {
+                background: #c82333;
+            }
+
     .btn-wishlist {
         background: white;
         border: 2px solid var(--danger);
@@ -311,31 +329,7 @@
             color: var(--dark);
         }
 
-    .pagination-section {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 40px;
-    }
-
-    .pagination-btn {
-        background: white;
-        border: 2px solid #ddd;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: 600;
-    }
-
-        .pagination-btn:hover,
-        .pagination-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-    
+  
 
     .page-header h1 {
         font-size: 28px;
@@ -354,29 +348,29 @@
 
 <div class="page-header">
     <div class="container">
-        <h1><i class="fas fa-shopping-bag"></i> Ürün Kataloğu</h1>
-        <p>Binlerce ürün arasından seçiminizi yapın</p>
+        <h1><i class="fas fa-shopping-bag"></i> Product Catalog</h1>
+        <p>Choose from thousands of products</p>
     </div>
 </div>
 
 <div class="container">
-    <!-- FILTERLER -->
+    <!-- FILTERS -->
     <div class="filters-section">
         <div class="filter-title">
-            <i class="fas fa-filter"></i> Filtrele
+            <i class="fas fa-filter"></i> Filter
         </div>
         <div class="filter-group">
             <button class="filter-btn active" onclick="filterProducts('all')">
-                <i class="fas fa-th"></i> Tümü
+                <i class="fas fa-th"></i> All
             </button>
             <button class="filter-btn" onclick="filterProducts('discount')">
-                <i class="fas fa-tag"></i> İndirimli
+                <i class="fas fa-tag"></i> Discounted
             </button>
             <button class="filter-btn" onclick="filterProducts('new')">
-                <i class="fas fa-star"></i> Yeni
+                <i class="fas fa-star"></i> New
             </button>
             <button class="filter-btn" onclick="filterProducts('toprated')">
-                <i class="fas fa-crown"></i> Çok Puanlı
+                <i class="fas fa-crown"></i> Top Rated
             </button>
         </div>
     </div>
@@ -385,9 +379,9 @@
     {
         <div class="products-container">
             <div class="section-title">
-                <i class="fas fa-boxes"></i> Öne Çıkan Ürünler
+                <i class="fas fa-boxes"></i> Featured Products
                 <span style="margin-left: auto; font-size: 16px; color: #6c757d;">
-                    @Model.Count() ürün
+                    @Model.Count() products
                 </span>
             </div>
 
@@ -395,7 +389,7 @@
                 @foreach (var product in Model)
                 {
                     <div class="product-card" data-discount="@product.ReviewCount" data-rating="@product.Rating">
-                        <!-- Ürün Resmi -->
+                        <!-- Product Image -->
                         <div class="product-image-wrapper">
                             <img src="@(product.CoverImageUrl ?? "https://via.placeholder.com/400x300?text=No+Image")"
                                  alt="@product.Name"
@@ -410,17 +404,17 @@
                             }
                         </div>
 
-                        <!-- Ürün Bilgileri -->
+                        <!-- Product Info -->
                         <div class="product-info">
-                            <!-- Kategori -->
+                            <!-- Category -->
                             <div class="product-category">
                                 @product.CategoryName
                             </div>
 
-                            <!-- Ürün Adı -->
+                            <!-- Product Name -->
                             <h3 class="product-name">@product.Name</h3>
 
-                            <!-- Marka -->
+                            <!-- Brand -->
                             <div class="product-brand">
                                 <i class="fas fa-industry"></i>
                                 <span class="brand-tag">@product.BrandName</span>
@@ -451,18 +445,31 @@
                                 <span class="rating-count">(@product.ReviewCount)</span>
                             </div>
 
-                            <!-- Fiyat -->
+                            <!-- Price -->
                             <div class="product-price">
                                 <span class="current-price">@product.Price.ToString("C2")</span>
                             </div>
 
-                            <!-- Butonlar -->
+                            <!-- Buttons -->
                             <div class="product-actions">
                                 <a href="@Url.Action("Details", "Home", new { id = product.Id })"
                                    class="btn-details">
-                                    <i class="fas fa-eye"></i> Detaylar
+                                    <i class="fas fa-eye"></i> View
                                 </a>
-                                <button class="btn-wishlist" title="Favorilere Ekle">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a href="@Url.Action("Edit", "Home", new { id = product.Id })"
+                                       class="btn-details edit">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="post" action="@Url.Action("Delete", "Home")" style="display:flex; gap: 8px;" onsubmit="return confirm('Are you sure?');">
+                                        <input type="hidden" name="id" value="@product.Id">
+                                        <button type="submit" class="btn-details delete">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                }
+                                <button class="btn-wishlist" title="Add to Wishlist">
                                     <i class="far fa-heart"></i>
                                 </button>
                             </div>
@@ -476,8 +483,8 @@
     {
         <div class="empty-state">
             <i class="fas fa-inbox"></i>
-            <h3>Ürün Bulunamadı</h3>
-            <p>Seçtiğiniz kategoride ürün bulunmamaktadır.</p>
+            <h3>No Products Found</h3>
+            <p>There are no products in the selected category.</p>
         </div>
     }
 </div>
@@ -485,16 +492,12 @@
 <script>
     function filterProducts(type) {
         console.log('Filter:', type);
-        // Filter işlemi burada yapılacak
-
-        // Aktif butonu değiştir
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         event.target.closest('.filter-btn').classList.add('active');
     }
 
-    // Wishlist butonu işlemi
     document.querySelectorAll('.btn-wishlist').forEach(btn => {
         btn.addEventListener('click', function() {
             this.classList.toggle('active');
