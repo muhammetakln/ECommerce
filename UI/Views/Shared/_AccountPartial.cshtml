@@ -1,0 +1,22 @@
+﻿<nav class="nav">
+    @if (User.Identity.IsAuthenticated != null && User.Identity.IsAuthenticated)
+    {
+
+        <a class="nav-link" asp-action="index" asp-controller="accounts">Profilr Giriş</a>
+        <form asp-action="logout"asp-controller="accounts" method="post">
+            <button type="submit" class="nav-link btn btn-link">Çıkış Yap</button>
+        </form>
+
+
+    }
+    else
+
+    {
+        <a class="nav-link" asp-action="login" asp-controller="accounts">Giriş Yap</a>
+        <a class="nav-link" asp-action="register" asp-controller="accounts">Kayıt Ol</a>
+
+    }
+
+
+
+</nav>

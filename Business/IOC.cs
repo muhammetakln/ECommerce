@@ -71,6 +71,7 @@ namespace Business
             services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<ShowroomProfiles>();
+                cfg.AddProfile<AuthProfiles>();
             });
 
 
@@ -103,7 +104,7 @@ namespace Business
             /// - IMapper (AutoMapper): DTO dönüştürmeleri
             /// </summary>
             services.AddScoped<IShowroomService, ShowroomService>();
-
+            services.AddScoped<IAuthService, AuthService>();
 
             // ============ DÖNÜŞ ============
             /// <summary>

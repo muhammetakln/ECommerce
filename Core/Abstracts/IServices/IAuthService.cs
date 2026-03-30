@@ -13,6 +13,8 @@ namespace Core.Abstracts.IServices
     {
         Task<IResult> LoginAsync(LoginDto model);
         Task<IResult> RegisterAsync(RegisterDto model);
-         Task LogoutAsync();
+      
+        
+        Task LogoutAsync();
     }
 }
