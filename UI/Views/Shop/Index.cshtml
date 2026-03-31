@@ -8,165 +8,403 @@
     decimal toplamIndirim = araToplam - genelToplam;
 }
 
-<div class="container my-5">
-    <div class="d-flex align-items-center mb-4">
-        <i class="fa-solid fa-cart-shopping fa-2x text-primary me-3"></i>
-        <h2 class="mb-0 fw-bold">Alışveriş Sepetim</h2>
-    </div>
+<style>
+    .cart-page {
+        background: #f7f8fa;
+        min-height: 80vh;
+    }
 
-    @if (Model.Items != null && Model.Items.Any())
-    {
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card shadow-sm border-0">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4 py-3">Ürün Detayı</th>
-                                    <th>Birim Fiyat</th>
-                                    <th style="width: 130px;">Adet</th>
-                                    <th>Toplam</th>
-                                    <th class="text-end pe-4">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Items)
-                                {
-                                    <tr>
-                                        <td class="ps-4 py-3">
-                                            <div class="d-flex align-items-center">
-                                                @if (!string.IsNullOrEmpty(item.ProductImage))
-                                                {
-                                                    <img src="@item.ProductImage" alt="@item.ProductName" class="rounded border" style="width: 70px; height: 70px; object-fit: cover;">
-                                                }
-                                                else
-                                                {
-                                                    <div class="rounded border bg-light d-flex align-items-center justify-content-center text-muted" style="width: 70px; height: 70px;">
-                                                        <i class="fa-solid fa-image fa-xl"></i>
-                                                    </div>
-                                                }
-                                                <div class="ms-3">
-                                                    <h6 class="mb-1 fw-bold">@item.ProductName</h6>
-                                                    <small class="text-muted text-uppercase">Ürün Kodu: #@item.ProductId</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if (item.DiscountedPrice < item.Price)
-                                            {
-                                                <div class="text-muted small text-decoration-line-through">@item.Price.ToString("C2")</div>
-                                                <div class="fw-bold text-danger">@item.DiscountedPrice.ToString("C2")</div>
-                                            }
-                                            else
-                                            {
-                                                <div class="fw-bold">@item.Price.ToString("C2")</div>
-                                            }
-                                        </td>
-                                        <td>
-                                            <div class="input-group input-group-sm border rounded">
-                                                <a class="btn btn-link text-dark px-2 border-0"
-                                                   asp-action="addToCart"
-                                                   asp-controller="shop"
-                                                   asp-route-pid="@item.ProductId"
-                                                   asp-route-quantity="-1">
-                                                    <i class="fa-solid fa-minus fa-xs"></i>
-                                                </a>
-                                                <input type="text" class="form-control border-0 text-center bg-transparent fw-bold" value="@item.Quantity" readonly>
-                                                <a class="btn btn-link text-dark px-2 border-0"
-                                                   asp-action="addToCart"
-                                                   asp-controller="shop"
-                                                   asp-route-pid="@item.ProductId"
-                                                   asp-route-quantity="1">
-                                                    <i class="fa-solid fa-plus fa-xs"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="fw-bold text-dark">@((item.DiscountedPrice * item.Quantity).ToString("C2"))</span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <a class="btn btn-outline-secondary btn-sm border-0 rounded-circle p-2"
-                                               asp-action="removeFromCart"
-                                               asp-controller="shop"
-                                               asp-route-pid="@item.ProductId">
-                                                <i class="fa-solid fa-trash-can text-danger"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    /* Cart Item Card */
+    .cart-item-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #eee;
+        transition: box-shadow 0.2s;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+    }
 
-                <div class="mt-4">
-                    <a href="/" class="btn btn-outline-dark rounded-pill px-4 shadow-sm">
-                        <i class="fa-solid fa-arrow-left me-2"></i>Alışverişe Devam Et
-                    </a>
-                </div>
+        .cart-item-card:hover {
+            box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+        }
+
+    .cart-product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        flex-shrink: 0;
+    }
+
+    .no-img-box {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        flex-shrink: 0;
+    }
+
+    /* Quantity Controls */
+    .qty-control {
+        display: inline-flex;
+        align-items: center;
+        background: #f4f4f4;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+
+    .qty-btn {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: #333;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: background 0.15s;
+        cursor: pointer;
+    }
+
+        .qty-btn:hover {
+            background: #e0e0e0;
+            color: #111;
+        }
+
+    .qty-value {
+        width: 38px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #111;
+        border: none;
+        background: transparent;
+        outline: none;
+        pointer-events: none;
+    }
+
+    /* Price */
+    .price-original {
+        font-size: 0.8rem;
+        color: #aaa;
+        text-decoration: line-through;
+    }
+
+    .price-main {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #111;
+    }
+
+    .price-discounted {
+        color: #e53935;
+    }
+
+    .line-total {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a73e8;
+    }
+
+    /* Delete button */
+    .btn-remove {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid #ffd5d5;
+        background: #fff5f5;
+        color: #e53935;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .btn-remove:hover {
+            background: #e53935;
+            color: #fff;
+            border-color: #e53935;
+        }
+
+    /* Summary Card */
+    .summary-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #eee;
+        padding: 24px;
+        position: sticky;
+        top: 80px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.92rem;
+        margin-bottom: 12px;
+    }
+
+    .total-row {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .btn-checkout {
+        background: linear-gradient(135deg, #1a73e8, #0d5cc7);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        width: 100%;
+        letter-spacing: 0.3px;
+        transition: opacity 0.2s;
+    }
+
+        .btn-checkout:hover {
+            opacity: 0.92;
+            color: #fff;
+        }
+
+    /* Empty cart */
+    .empty-cart {
+        background: #fff;
+        border-radius: 16px;
+        text-align: center;
+        padding: 80px 40px;
+        border: 1px solid #eee;
+    }
+
+    /* Back link */
+    .btn-back {
+        border-radius: 10px;
+        border: 1.5px solid #ddd;
+        background: #fff;
+        font-size: 0.9rem;
+        color: #444;
+        padding: 8px 18px;
+        transition: border-color 0.15s, color 0.15s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .btn-back:hover {
+            border-color: #333;
+            color: #111;
+        }
+
+    /* Alerts */
+    .alert-cart {
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="cart-page py-5">
+    <div class="container">
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <h3 class="fw-bold mb-0"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i>Alışveriş Sepetim</h3>
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                <span class="badge bg-primary rounded-pill">@Model.Items.Count() ürün</span>
+            }
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show alert-cart d-flex align-items-center gap-2 mb-3">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>@TempData["Success"]</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
             </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show alert-cart d-flex align-items-center gap-2 mb-3">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>@TempData["Error"]</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        }
 
-            <div class="col-lg-4">
-                <div class="card shadow border-0 p-3">
-                    <h5 class="fw-bold mb-4">Sipariş Özeti</h5>
+        @if (Model.Items != null && Model.Items.Any())
+        {
+            <div class="row g-4">
+                <!-- Sol: Ürün Listesi -->
+                <div class="col-lg-8">
 
-                    <div class="d-flex justify-content-between mb-3 text-secondary">
-                        <span>Ara Toplam</span>
-                        <span>@araToplam.ToString("C2")</span>
-                    </div>
-
-                    @if (toplamIndirim > 0)
+                    @foreach (var item in Model.Items)
                     {
-                        <div class="d-flex justify-content-between mb-3 text-success">
-                            <span><i class="fa-solid fa-tags me-1"></i> Toplam İndirim</span>
-                            <span class="fw-bold">-@toplamIndirim.ToString("C2")</span>
+                        <div class="cart-item-card d-flex align-items-center gap-3 flex-wrap">
+
+                            <!-- Ürün Görseli -->
+                            @if (!string.IsNullOrEmpty(item.ProductImage))
+                            {
+                                <img src="@item.ProductImage" alt="@item.ProductName" class="cart-product-img" />
+                            }
+                            else
+                            {
+                                <div class="no-img-box">
+                                    <i class="fa-regular fa-image fa-lg"></i>
+                                </div>
+                            }
+
+                            <!-- Ürün Bilgisi -->
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold mb-1" style="font-size:1rem;">@item.ProductName</div>
+                                <small class="text-muted">Ürün #@item.ProductId</small>
+
+                                <!-- Fiyat (mobil için) -->
+                                <div class="d-lg-none mt-2">
+                                    @if (item.DiscountedPrice < item.Price)
+                                    {
+                                        <span class="price-original">@item.Price.ToString("C2")</span>
+                                        <span class="price-main price-discounted ms-1">@item.DiscountedPrice.ToString("C2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="price-main">@item.Price.ToString("C2")</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Birim Fiyat (masaüstü) -->
+                            <div class="d-none d-lg-block text-center" style="min-width:90px;">
+                                <div class="text-muted small mb-1">Birim Fiyat</div>
+                                @if (item.DiscountedPrice < item.Price)
+                                {
+                                    <div class="price-original">@item.Price.ToString("C2")</div>
+                                    <div class="price-main price-discounted">@item.DiscountedPrice.ToString("C2")</div>
+                                }
+                                else
+                                {
+                                    <div class="price-main">@item.Price.ToString("C2")</div>
+                                }
+                            </div>
+
+                            <!-- Adet Kontrolü -->
+                            <div class="text-center">
+                                <div class="text-muted small mb-1 d-none d-lg-block">Adet</div>
+                                <div class="qty-control">
+                                    <a class="qty-btn"
+                                       asp-action="addToCart"
+                                       asp-controller="shop"
+                                       asp-route-pid="@item.ProductId"
+                                       asp-route-quantity="-1"
+                                       title="Azalt">
+                                        <i class="fa-solid fa-minus" style="font-size:0.75rem;"></i>
+                                    </a>
+                                    <input class="qty-value" type="text" value="@item.Quantity" readonly />
+                                    <a class="qty-btn"
+                                       asp-action="addToCart"
+                                       asp-controller="shop"
+                                       asp-route-pid="@item.ProductId"
+                                       asp-route-quantity="1"
+                                       title="Artır">
+                                        <i class="fa-solid fa-plus" style="font-size:0.75rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Satır Toplam -->
+                            <div class="text-center d-none d-lg-block" style="min-width:80px;">
+                                <div class="text-muted small mb-1">Toplam</div>
+                                <div class="line-total">@((item.DiscountedPrice * item.Quantity).ToString("C2"))</div>
+                            </div>
+
+                            <!-- Sil -->
+                            <a class="btn-remove"
+                               asp-action="removeFromCart"
+                               asp-controller="shop"
+                               asp-route-pid="@item.ProductId"
+                               title="Sepetten Kaldır">
+                                <i class="fa-solid fa-trash-can" style="font-size:0.8rem;"></i>
+                            </a>
+
                         </div>
                     }
 
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Kargo Ücreti</span>
-                        <span class="text-success fw-bold">Ücretsiz</span>
+                    <div class="mt-3">
+                        <a href="/" class="btn-back">
+                            <i class="fa-solid fa-arrow-left"></i>Alışverişe Devam Et
+                        </a>
                     </div>
+                </div>
 
-                    <hr class="my-4">
+                <!-- Sağ: Sipariş Özeti -->
+                <div class="col-lg-4">
+                    <div class="summary-card">
+                        <h5 class="fw-bold mb-4">Sipariş Özeti</h5>
 
-                    <div class="d-flex justify-content-between mb-4">
-                        <span class="h5 fw-bold">Ödenecek Tutar</span>
-                        <span class="h5 fw-bold text-primary">@genelToplam.ToString("C2")</span>
-                    </div>
+                        <div class="summary-row text-secondary">
+                            <span>Ara Toplam</span>
+                            <span>@araToplam.ToString("C2")</span>
+                        </div>
 
-                    <div class="d-grid">
-                        <button class="btn btn-primary btn-lg rounded-3 py-3 shadow">
+                        @if (toplamIndirim > 0)
+                        {
+                            <div class="summary-row text-success">
+                                <span><i class="fa-solid fa-tag me-1"></i>İndirim</span>
+                                <span class="fw-bold">−@toplamIndirim.ToString("C2")</span>
+                            </div>
+                        }
+
+                        <div class="summary-row">
+                            <span class="text-secondary">Kargo</span>
+                            <span class="text-success fw-semibold">Ücretsiz</span>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <div class="summary-row total-row">
+                            <span>Ödenecek Tutar</span>
+                            <span class="text-primary">@genelToplam.ToString("C2")</span>
+                        </div>
+
+                        <button class="btn-checkout mt-3">
                             <i class="fa-solid fa-credit-card me-2"></i>Ödemeye Geç
                         </button>
-                    </div>
 
-                    <div class="mt-4 text-center">
-                        <div class="small text-muted mb-2">Güvenli Ödeme Seçenekleri</div>
-                        <div class="d-flex justify-content-center gap-3 text-muted">
-                            <i class="fa-brands fa-cc-visa fa-2x"></i>
-                            <i class="fa-brands fa-cc-mastercard fa-2x"></i>
-                            <i class="fa-solid fa-shield-halved fa-2x text-success"></i>
+                        <div class="mt-4 text-center">
+                            <div class="text-muted small mb-2">Güvenli Ödeme</div>
+                            <div class="d-flex justify-content-center gap-3 text-muted">
+                                <i class="fa-brands fa-cc-visa fa-2x"></i>
+                                <i class="fa-brands fa-cc-mastercard fa-2x"></i>
+                                <i class="fa-solid fa-shield-halved fa-2x text-success"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
-    else
-    {
-        <div class="card border-0 shadow-sm py-5 text-center">
-            <div class="card-body">
-                <div class="mb-4 text-muted opacity-25">
+        }
+        else
+        {
+            <div class="empty-cart">
+                <div class="mb-4 text-muted" style="opacity:0.2;">
                     <i class="fa-solid fa-cart-arrow-down fa-6x"></i>
                 </div>
-                <h3 class="fw-bold">Sepetiniz Boş!</h3>
-                <p class="text-muted mb-4">Görünüşe göre henüz bir seçim yapmadınız.</p>
-                <a href="/" class="btn btn-primary btn-lg rounded-pill px-5">
-                    Hemen Alışverişe Başla
+                <h4 class="fw-bold mb-2">Sepetiniz Boş</h4>
+                <p class="text-muted mb-4">Henüz hiç ürün eklemediniz.</p>
+                <a href="/" class="btn btn-primary btn-lg rounded-3 px-5">
+                    <i class="fa-solid fa-bag-shopping me-2"></i>Alışverişe Başla
                 </a>
             </div>
-        </div>
-    }
-}</div>
+        }
+
+    </div>
+</div>

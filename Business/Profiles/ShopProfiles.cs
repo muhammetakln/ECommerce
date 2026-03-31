@@ -12,10 +12,20 @@ namespace Business.Profiles
             CreateMap<Cart, CartDto>();
 
             CreateMap<CartItem, CartItemDto>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.ProductImage, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault(x => x.IsCoverImage)))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
-                .ForMember(dest => dest.DiscountedPrice, opt => opt.MapFrom(src => src.Product.Price * (100 - src.Product.DiscountRate) / 100));
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : ""))
+                .ForMember(dest => dest.ProductImage, opt => opt.MapFrom(src =>
+                    src.Product != null && src.Product.Images != null
+                        ? src.Product.Images.FirstOrDefault(x => x.IsCoverImage) != null
+                            ? src.Product.Images.FirstOrDefault(x => x.IsCoverImage)!.ImageUrl
+                            : src.Product.Images.FirstOrDefault() != null
+                                ? src.Product.Images.FirstOrDefault()!.ImageUrl
+                                : null
+                        : null))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product != null ? src.Product.Price : 0))
+                .ForMember(dest => dest.DiscountedPrice, opt => opt.MapFrom(src =>
+                    src.Product != null
+                        ? src.Product.Price * (100 - src.Product.DiscountRate) / 100
+                        : 0));
         }
     }
 }

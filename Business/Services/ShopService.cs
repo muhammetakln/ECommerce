@@ -27,8 +27,8 @@ namespace Business.Services
         {
             try
             {
-                if (quantity <= 0)
-                    throw new ArgumentException("Miktar 0'dan büyük olmalıdır");
+                if (quantity == 0)
+                    throw new ArgumentException("Miktar 0 olamaz");
 
                 var cart = await getCart(customerId);
 
@@ -41,27 +41,42 @@ namespace Business.Services
 
                 if (cartItemResult.IsSuccess && cartItemResult.Data != null)
                 {
-                    // ÜRÜN ZATEN VAR: Miktarı artır
                     CartItem cartItem = cartItemResult.Data;
-                    cartItem.Quantity += quantity;
-                    await unitOfWork.CartItemRepository.UpdateAsync(cartItem);
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[UPDATE] CartItem updated - CartId: {cart.Id}, ProductId: {productId}, NewQty: {cartItem.Quantity}"
-                    );
+                    int newQty = cartItem.Quantity + quantity;
+
+                    if (newQty <= 0)
+                    {
+                        // Miktar 0 veya altına düştü → ürünü sepetten kaldır
+                        await unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[DELETE] CartItem removed (qty reached 0) - CartId: {cart.Id}, ProductId: {productId}"
+                        );
+                    }
+                    else
+                    {
+                        cartItem.Quantity = newQty;
+                        await unitOfWork.CartItemRepository.UpdateAsync(cartItem);
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[UPDATE] CartItem updated - CartId: {cart.Id}, ProductId: {productId}, NewQty: {cartItem.Quantity}"
+                        );
+                    }
                 }
                 else
                 {
-                    // ÜRÜN YOK: Yeni CartItem oluştur
-                    CartItem newCartItem = new()
+                    // ÜRÜN YOK: Yeni CartItem oluştur (sadece quantity > 0 ise)
+                    if (quantity > 0)
                     {
-                        CartId = cart.Id,
-                        ProductId = productId,
-                        Quantity = quantity
-                    };
-                    await unitOfWork.CartItemRepository.CreateAsync(newCartItem);
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[CREATE] CartItem created - CartId: {cart.Id}, ProductId: {productId}, Qty: {quantity}"
-                    );
+                        CartItem newCartItem = new()
+                        {
+                            CartId = cart.Id,
+                            ProductId = productId,
+                            Quantity = quantity
+                        };
+                        await unitOfWork.CartItemRepository.CreateAsync(newCartItem);
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[CREATE] CartItem created - CartId: {cart.Id}, ProductId: {productId}, Qty: {quantity}"
+                        );
+                    }
                 }
 
                 var commitResult = await unitOfWork.CommitAsync();
@@ -167,28 +182,34 @@ namespace Business.Services
 
         private async Task<Cart> getCart(string customerId)
         {
+            // Önce active olan sepeti bul
             var result = await unitOfWork.CartRepository.FindManyAsync(
-                c => c.CustomerId == customerId && c.Active,
-                "Items.Product"  // ← Eager loading
+                c => c.CustomerId == customerId,
+                "Items.Product"
             );
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Data != null && result.Data.Any())
             {
-                return result.Data.FirstOrDefault();
+                var existing = result.Data.FirstOrDefault(c => c.Active)
+                               ?? result.Data.FirstOrDefault();
+                return existing!;
+            }
+
+            // Sepet yoksa yeni oluştur
+            var newCart = new Cart
+            {
+                CustomerId = customerId,
+                Active = true   // ← ÖNEMLİ: Active true olarak set et
+            };
+            await unitOfWork.CartRepository.CreateAsync(newCart);
+            var commitResult = await unitOfWork.CommitAsync();
+            if (commitResult.IsSuccess)
+            {
+                return newCart;
             }
             else
             {
-                var newCart = new Cart { CustomerId = customerId };
-                await unitOfWork.CartRepository.CreateAsync(newCart);
-                var commitResult = await unitOfWork.CommitAsync();
-                if (commitResult.IsSuccess)
-                {
-                    return newCart;
-                }
-                else
-                {
-                    throw new Exception("Sepet oluşturulurken bir hata oluştu.");
-                }
+                throw new Exception("Sepet oluşturulurken bir hata oluştu.");
             }
         }
     }

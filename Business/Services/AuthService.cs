@@ -32,20 +32,10 @@ namespace Business.Services
 
             if (result.Succeeded)
             {
-                var user = await userManager.FindByNameAsync(model.UserName);
-
-                // ✅ FIX: User null kontrolü
-                if (user == null)
-                {
-                    return Result.Failure("Kullanıcı bulunamadı", 404);
-                }
-                {
-                    return Result.Failure("Kullanıcı adı veya şifre yanlış", 401);
-                }
-
-
+                return Result.Success();
             }
-            return Result.Success();
+
+            return Result.Failure("Kullanıcı adı veya şifre yanlış", 401);
         }
 
 

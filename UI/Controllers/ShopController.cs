@@ -71,73 +71,50 @@ namespace UI.Controllers
             }
         }
 
-        public async Task<IActionResult> AddToCart(int pid, int quantity = 1)
+        public async Task<IActionResult> AddToCart(int pid, int quantity = 1, string returnUrl = "/")
         {
             try
             {
-                // ✅ FIX 1: User null mu kontrol et
                 if (User?.Identity?.IsAuthenticated != true)
                 {
-                    System.Diagnostics.Debug.WriteLine("[ERROR] User not authenticated in AddToCart");
                     TempData["Error"] = "Lütfen önce giriş yapınız.";
                     return RedirectToAction("Login", "Accounts");
                 }
 
-                // ✅ FIX 2: User ID'sini al
                 string? uid = userManager.GetUserId(User);
 
-                // ✅ FIX 3: User ID null mu kontrol et
                 if (string.IsNullOrEmpty(uid))
                 {
-                    System.Diagnostics.Debug.WriteLine("[ERROR] User ID is null in AddToCart");
                     TempData["Error"] = "Kullanıcı tanımlanamadı.";
                     return RedirectToAction("Login", "Accounts");
                 }
 
-                // ✅ FIX 4: Service null mu kontrol et
-                if (service == null)
+                if (quantity == 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("[ERROR] Service is null in AddToCart");
-                    TempData["Error"] = "Sistem hatası.";
-                    return RedirectToAction("index");
+                    TempData["Error"] = "Miktar 0 olamaz.";
+                    return Redirect(returnUrl);
                 }
-
-                // ✅ FIX 5: Quantity validation
-                if (quantity <= 0)
-                {
-                    TempData["Error"] = "Miktar 0'dan büyük olmalıdır.";
-                    return RedirectToAction("index");
-                }
-
-                System.Diagnostics.Debug.WriteLine(
-                    $"[INFO] AddToCart: UID={uid}, ProductID={pid}, Qty={quantity}"
-                );
 
                 await service.AddToCartAsync(uid, pid, quantity);
 
-                TempData["Success"] = $"Ürün sepete eklendi!";
-                System.Diagnostics.Debug.WriteLine(
-                    $"[SUCCESS] AddToCart completed for UID={uid}, ProductID={pid}"
-                );
+                if (quantity > 0)
+                    TempData["Success"] = "Ürün sepete eklendi!";
             }
             catch (ArgumentException ex)
             {
-                TempData["Error"] = $"Validation: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"[VALIDATION ERROR] AddToCart: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["Error"] = $"İşlem hatası: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"[OPERATION ERROR] AddToCart: {ex.Message}");
+                TempData["Error"] = ex.Message;
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Sepete eklenirken hata oluştu.";
-                System.Diagnostics.Debug.WriteLine($"[CRITICAL ERROR] AddToCart: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[STACK TRACE] {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[ERROR] AddToCart: {ex.Message}");
             }
 
-            return RedirectToAction("index");
+            // Sepet sayfasından geldiyse veya azaltma ise sepette kal
+            if (returnUrl.Contains("/shop", StringComparison.OrdinalIgnoreCase) || quantity < 0)
+                return RedirectToAction("index");
+
+            return Redirect(returnUrl);
         }
 
         public async Task<IActionResult> RemoveFromCart(int pid)
