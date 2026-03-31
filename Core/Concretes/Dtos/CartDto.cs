@@ -5,4 +5,5 @@
         public string CustomerId { get; set; } = null!;
         public IEnumerable<CartItemDto> Items { get; set; } = [];
     }
+    // ❌ CartItemDto ALINAN KALMADI!
 }

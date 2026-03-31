@@ -33,27 +33,22 @@ namespace Business.Services
             if (result.Succeeded)
             {
                 var user = await userManager.FindByNameAsync(model.UserName);
-               
 
-                return Result.Success();
+                // ✅ FIX: User null kontrolü
+                if (user == null)
+                {
+                    return Result.Failure("Kullanıcı bulunamadı", 404);
+                }
+                {
+                    return Result.Failure("Kullanıcı adı veya şifre yanlış", 401);
+                }
+
+
             }
-            else if (result.IsLockedOut)
-            {
-                return Result.Failure("Hesabınız kilitlenmiş. Lütfen daha sonra tekrar deneyin", 429);
-            }
-            else if (result.IsNotAllowed)
-            {
-                return Result.Failure("Giriş Başarısız", 400);
-            }
-            else if (result.RequiresTwoFactor)
-            {
-                return Result.Failure("İki faktörlü doğrulama gerekli", 401);
-            }
-            else
-            {
-                return Result.Failure("Kullanıcı adı veya şifre yanlış", 401);
-            }
+            return Result.Success();
         }
+
+
 
         public Task LogoutAsync()
         {

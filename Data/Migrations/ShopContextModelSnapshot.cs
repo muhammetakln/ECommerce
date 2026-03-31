@@ -60,6 +60,9 @@ namespace Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CustomerId1")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("INTEGER");
 
@@ -68,7 +71,10 @@ namespace Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
+                    b.HasIndex("CustomerId1");
 
                     b.ToTable("Carts");
                 });
@@ -79,28 +85,33 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("CartId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("CartId1")
+                    b.Property<bool>("Active")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ProductId")
-                        .IsRequired()
+                    b.Property<int>("CartId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("ProductId1")
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CartId1");
+                    b.HasIndex("ProductId");
 
-                    b.HasIndex("ProductId1");
+                    b.HasIndex("CartId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("CartItems");
                 });
@@ -228,6 +239,9 @@ namespace Data.Migrations
                     b.Property<int>("BrandId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("BrandId1")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -253,6 +267,9 @@ namespace Data.Migrations
                     b.Property<int>("SubCategoryId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("SubCategoryId1")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
@@ -260,7 +277,11 @@ namespace Data.Migrations
 
                     b.HasIndex("BrandId");
 
+                    b.HasIndex("BrandId1");
+
                     b.HasIndex("SubCategoryId");
+
+                    b.HasIndex("SubCategoryId1");
 
                     b.ToTable("Products");
                 });
@@ -271,12 +292,24 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
                         .IsRequired()
@@ -295,6 +328,15 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -304,6 +346,9 @@ namespace Data.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -331,14 +376,13 @@ namespace Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CustomerId1")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ProductId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("ProductId1")
+                    b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Review")
@@ -355,7 +399,9 @@ namespace Data.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("ProductId1");
+                    b.HasIndex("CustomerId1");
+
+                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductReviews");
                 });
@@ -523,10 +569,14 @@ namespace Data.Migrations
             modelBuilder.Entity("Core.Concretes.Entities.Cart", b =>
                 {
                     b.HasOne("Core.Concretes.Entities.Customer", "Customer")
-                        .WithMany("ShoppingCarts")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Core.Concretes.Entities.Customer", null)
+                        .WithMany("ShoppingCarts")
+                        .HasForeignKey("CustomerId1");
 
                     b.Navigation("Customer");
                 });
@@ -535,11 +585,15 @@ namespace Data.Migrations
                 {
                     b.HasOne("Core.Concretes.Entities.Cart", "Cart")
                         .WithMany("Items")
-                        .HasForeignKey("CartId1");
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Core.Concretes.Entities.Product", "Product")
                         .WithMany("CartItems")
-                        .HasForeignKey("ProductId1");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Cart");
 
@@ -549,16 +603,24 @@ namespace Data.Migrations
             modelBuilder.Entity("Core.Concretes.Entities.Product", b =>
                 {
                     b.HasOne("Core.Concretes.Entities.Brand", "Brand")
-                        .WithMany("Products")
+                        .WithMany()
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Core.Concretes.Entities.SubCategory", "SubCategory")
+                    b.HasOne("Core.Concretes.Entities.Brand", null)
                         .WithMany("Products")
+                        .HasForeignKey("BrandId1");
+
+                    b.HasOne("Core.Concretes.Entities.SubCategory", "SubCategory")
+                        .WithMany()
                         .HasForeignKey("SubCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Core.Concretes.Entities.SubCategory", null)
+                        .WithMany("Products")
+                        .HasForeignKey("SubCategoryId1");
 
                     b.Navigation("Brand");
 
@@ -567,37 +629,43 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Core.Concretes.Entities.ProductAttribute", b =>
                 {
-                    b.HasOne("Core.Concretes.Entities.Product", "Products")
+                    b.HasOne("Core.Concretes.Entities.Product", "Product")
                         .WithMany("Attributes")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Products");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Core.Concretes.Entities.ProductImage", b =>
                 {
-                    b.HasOne("Core.Concretes.Entities.Product", "Products")
+                    b.HasOne("Core.Concretes.Entities.Product", "Product")
                         .WithMany("Images")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Products");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Core.Concretes.Entities.ProductReview", b =>
                 {
                     b.HasOne("Core.Concretes.Entities.Customer", "Customer")
-                        .WithMany("ProductReviews")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Core.Concretes.Entities.Customer", null)
+                        .WithMany("ProductReviews")
+                        .HasForeignKey("CustomerId1");
+
                     b.HasOne("Core.Concretes.Entities.Product", "Product")
                         .WithMany("ProductReviews")
-                        .HasForeignKey("ProductId1");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Customer");
 
@@ -609,7 +677,7 @@ namespace Data.Migrations
                     b.HasOne("Core.Concretes.Entities.Category", "Category")
                         .WithMany("SubCategories")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");

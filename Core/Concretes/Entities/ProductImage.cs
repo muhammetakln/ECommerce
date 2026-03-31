@@ -1,20 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Core.Abstracts.Bases;
 
 namespace Core.Concretes.Entities
 {
-    public class ProductImage
+    /// <summary>
+    /// Ürün resmi/görüntüsü
+    /// </summary>
+    public class ProductImage : BaseEntity  // ✅ FIX: BaseEntity'den türet
     {
-        public int Id { get; set; }
+        /// <summary>
+        /// Resmin URL'i (dosya yolu)
+        /// </summary>
         public string ImageUrl { get; set; } = null!;
-        public bool IsCoverImage { get; set; } = false;
-        //Foreign key
-        public int ProductId { get; set; }
-        // Navigation property
-        public virtual Product? Products { get; set; }
 
+        /// <summary>
+        /// Bu resim ürünün kapak resmi mi?
+        /// </summary>
+        public bool IsCoverImage { get; set; } = false;
+
+        //Foreign key
+        /// <summary>
+        /// Bu resmin ait olduğu ürünün ID'si
+        /// </summary>
+        public int ProductId { get; set; }
+
+        // Navigation property
+        /// <summary>
+        /// Bu resmin ait olduğu ürün nesnesi
+        /// </summary>
+        public virtual Product? Product { get; set; }  // ✅ FIX: Products -> Product
     }
 }
