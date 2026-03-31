@@ -72,6 +72,7 @@ namespace Business
             {
                 cfg.AddProfile<ShowroomProfiles>();
                 cfg.AddProfile<AuthProfiles>();
+                cfg.AddProfile<ShopProfiles>();
             });
 
 
@@ -105,6 +106,7 @@ namespace Business
             /// </summary>
             services.AddScoped<IShowroomService, ShowroomService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IShopService, ShopService>();
 
             // ============ DÖNÜŞ ============
             /// <summary>

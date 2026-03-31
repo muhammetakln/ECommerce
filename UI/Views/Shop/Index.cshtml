@@ -1,0 +1,14 @@
+﻿@using Core.Concretes.Dtos
+@model CartDto
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Current Shopping Cart</h1>
+<ul>
+    @foreach (var item in Model.Items)
+    {
+        <li>@item.ProductName</li>
+    }
+</ul>
+

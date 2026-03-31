@@ -1,8 +1,17 @@
-﻿<nav class="nav">
+﻿@using Core.Abstracts.IServices
+@using Core.Concretes.Entities
+@using Microsoft.AspNetCore.Identity
+@inject IShopService ShopService
+@inject UserManager<Customer> UserManager
+<nav class="nav">
     @if (User.Identity.IsAuthenticated != null && User.Identity.IsAuthenticated)
     {
+        var customer = await UserManager.GetUserAsync(User);
+        var cart = await ShopService.GetCartAsync(customer.Id);
 
-        <a class="nav-link" asp-action="index" asp-controller="accounts">Profilr Giriş</a>
+        <a class="nav-link" asp-action="index" asp-controller="accounts">Profile Giriş</a>
+        <a class="nav-link" href="#">Sepetim(@cart.Items.Count())</a>
+        
         <form asp-action="logout"asp-controller="accounts" method="post">
             <button type="submit" class="nav-link btn btn-link">Çıkış Yap</button>
         </form>
