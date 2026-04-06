@@ -74,6 +74,110 @@
         font-weight: 700;
         color: #1a73e8;
     }
+
+    /* ✅ Sepet Toast Kartı */
+    .cart-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        transform: translateY(400px);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+        .cart-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .cart-toast .toast-card {
+            width: 320px;
+            max-width: calc(100vw - 40px);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .cart-toast .toast-body {
+            padding: 20px;
+            position: relative;
+        }
+
+        .cart-toast .btn-close-toast {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+            .cart-toast .btn-close-toast:hover {
+                background: rgba(255,255,255,0.3);
+            }
+
+        .cart-toast .toast-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+    @@keyframes scaleIn {
+        0% {
+            transform: scale(0);
+        }
+
+        50% {
+            transform: scale(1.2);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .cart-toast .toast-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .cart-toast .toast-product {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 15px;
+    }
+
+    .cart-toast .btn-view-cart {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+        .cart-toast .btn-view-cart:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 </style>
 
 <div class="container-fluid py-4 px-4">
@@ -116,16 +220,18 @@
                 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                     <div class="card h-100 border-0 shadow-sm product-card">
                         <div class="img-wrapper position-relative">
-                            @if (!string.IsNullOrEmpty(product.CoverImageUrl))
-                            {
-                                <img src="@product.CoverImageUrl" alt="@product.Name" class="product-img" />
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                                    <i class="fa-regular fa-image fa-3x opacity-25"></i>
-                                </div>
-                            }
+                            <a href="/Shop/Details/@product.Id" style="display: block; width: 100%; height: 100%;">
+                                @if (!string.IsNullOrEmpty(product.CoverImageUrl))
+                                {
+                                    <img src="@product.CoverImageUrl" alt="@product.Name" class="product-img" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                        <i class="fa-regular fa-image fa-3x opacity-25"></i>
+                                    </div>
+                                }
+                            </a>
 
                             <div class="position-absolute top-0 start-0 m-2">
                                 <span class="badge bg-primary badge-cat">@product.CategoryName</span>
@@ -167,10 +273,8 @@
                                 <small class="text-muted ms-1">(@product.ReviewCount)</small>
                             </div>
 
-                            <a asp-action="addToCart"
-                               asp-controller="shop"
-                               asp-route-pid="@product.Id"
-                               asp-route-returnUrl="/"
+                            <a href="#"
+                               onclick="addToCart(event, '@product.Id', '@product.Name', '/')"
                                class="btn btn-cart w-100 py-2">
                                 <i class="fa-solid fa-cart-plus me-2"></i>Sepete Ekle
                             </a>
@@ -181,3 +285,79 @@
         </div>
     }
 </div>
+
+@* ✅ Sepet Toast Kartı *@
+<div class="cart-toast" id="cartToast">
+    <div class="toast-card">
+        <div class="toast-body text-center">
+            <button type="button" class="btn-close-toast" onclick="hideCartToast()">
+                <i class="fa-solid fa-times"></i>
+            </button>
+
+            <div class="toast-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="toast-title">Sepete Eklendi!</div>
+
+            <div class="toast-product" id="productAddedName">
+                Ürün başarıyla sepete eklendi
+            </div>
+
+            <a href="/Shop/Index" class="btn-view-cart">
+                <i class="fa-solid fa-shopping-cart me-2"></i>Sepeti Görüntüle
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let toastTimeout;
+
+        function addToCart(event, productId, productName, returnUrl) {
+            event.preventDefault();
+
+            // Önceki timeout'u temizle
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+
+            // Toast'ı hemen göster
+            document.getElementById('productAddedName').textContent = productName;
+            showCartToast();
+
+            // AJAX ile sepete ekle (sayfa yenilenmeden)
+            fetch(`/shop/addToCart?pid=${productId}&returnUrl=${returnUrl}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Ürün sepete eklendi:', productName);
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+            });
+
+            // 12 saniye sonra otomatik gizle
+            toastTimeout = setTimeout(hideCartToast, 12000);
+        }
+
+        function showCartToast() {
+            const toast = document.getElementById('cartToast');
+            // Önce gizle (eğer zaten görünüyorsa)
+            toast.classList.remove('show');
+
+            // 50ms sonra tekrar göster (animasyonu resetle)
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 50);
+        }
+
+        function hideCartToast() {
+            document.getElementById('cartToast').classList.remove('show');
+        }
+    </script>
+}

@@ -1,0 +1,197 @@
+﻿@using Core.Concretes.Dtos
+@model OrderDto
+
+@{
+    ViewData["Title"] = "Siparişlerim";
+}
+
+<style>
+    .order-page {
+        background: #f7f8fa;
+        min-height: 80vh;
+        padding: 40px 0;
+    }
+
+    .order-list-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #eee;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: box-shadow 0.2s;
+    }
+
+        .order-list-card:hover {
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+
+    .order-id {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1a73e8;
+    }
+
+    .order-status {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-shipped {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .product-mini {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .product-img-mini {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+    }
+</style>
+
+<div class="order-page">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h3 class="fw-bold mb-0">
+                <i class="fa-solid fa-box me-2 text-primary"></i>Siparişlerim
+            </h3>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                @TempData["Info"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (Model != null && Model.Id > 0)
+        {
+            <!-- Tek Sipariş -->
+            <div class="order-list-card">
+                <div class="row align-items-center">
+                    <!-- Sol: Sipariş Bilgisi -->
+                    <div class="col-md-3">
+                        <div class="order-id mb-2">Sipariş #@Model.Id</div>
+                        <div>
+                            <span class="order-status status-pending">
+                                <i class="fa-solid fa-clock me-1"></i>Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Orta: Ürünler -->
+                    <div class="col-md-7">
+                        <div class="text-muted small mb-2">Sipariş İçeriği:</div>
+                        <div class="d-flex flex-wrap">
+                            @if (Model.Items != null && Model.Items.Any())
+                            {
+                                @foreach (var item in Model.Items)
+                                {
+                                    <div class="product-mini">
+                                        @if (!string.IsNullOrEmpty(item.ProductImage))
+                                        {
+                                            <img src="@item.ProductImage" alt="@item.ProductName" class="product-img-mini" />
+                                        }
+                                        <span>
+                                            <strong>@item.Quantity x</strong> @item.ProductName
+                                        </span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Ürün bulunamadı</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Sağ: Toplam -->
+                    <div class="col-md-2 text-end">
+                        <div class="text-muted small">Toplam</div>
+                        <div class="fs-5 fw-bold text-primary">
+                            @if (Model.Items != null && Model.Items.Any())
+                            {
+                                @Model.Items.Sum(x => (x.ListPrice - x.DiscountValue) * x.Quantity).ToString("C2")
+                            }
+                            else
+                            {
+                                <span>0,00 TL</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="/" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Alışverişe Devam
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Sipariş Yok -->
+            <div class="text-center py-5">
+                <div class="mb-4" style="opacity:0.3;">
+                    <i class="fa-solid fa-box-open fa-6x text-muted"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Henüz Siparişiniz Yok</h4>
+                <p class="text-muted mb-4">İlk siparişinizi oluşturmak için alışverişe başlayın!</p>
+                <a href="/" class="btn btn-primary btn-lg px-5">
+                    <i class="fa-solid fa-bag-shopping me-2"></i>Alışverişe Başla
+                </a>
+            </div>
+        }
+
+    </div>
+</div>

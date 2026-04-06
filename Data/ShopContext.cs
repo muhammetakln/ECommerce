@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.Design;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Data
@@ -21,6 +22,8 @@ namespace Data
         public virtual DbSet<ProductReview> ProductReviews { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<SubCategory> SubCategories { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderITem> Items { get; set; }
 
         /// <summary>
         /// ✅ OnModelCreating - Tüm FK ilişkileri ve constraint'leri yapılandırıyoruz
@@ -133,6 +136,32 @@ namespace Data
             modelBuilder.Entity<CartItem>()
                 .HasIndex(ci => new { ci.CartId, ci.ProductId })
                 .IsUnique();
+            // ============================================
+            // ORDER-CUSTOMER İLİŞKİSİ (Many-to-One)
+            // ============================================
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany()
+                .HasForeignKey(o => o.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ============================================
+            // ORDER-ORDERITEM İLİŞKİSİ (One-to-Many)
+            // ============================================
+            modelBuilder.Entity<OrderITem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(o => o.Items)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ============================================
+            // PRODUCT-ORDERITEM İLİŞKİSİ (One-to-Many)
+            // ============================================
+            modelBuilder.Entity<OrderITem>()
+                .HasOne(oi => oi.Product)
+                .WithMany()
+                .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

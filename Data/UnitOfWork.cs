@@ -35,8 +35,11 @@ namespace Data
 
         private ISubCategoryRepository? subCategoryRepository;
         public ISubCategoryRepository SubCategoryRepository => subCategoryRepository ??= new SubCategoryRepository( context);
+        private IOrderRepository? orderRepository;
+        public IOrderRepository OrderRepository => orderRepository ??= new OrderRepository( context);
+        private IOrderItemRepository? orderItemRepository;
+        public IOrderItemRepository OrderItemRepository => orderItemRepository ??= new OrderItemRepository( context);
 
-       
         public async Task<IResult> CommitAsync()
         {
             try

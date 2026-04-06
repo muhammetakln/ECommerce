@@ -15,6 +15,7 @@ namespace Core.Concretes.Entities
         public virtual ICollection<Cart> ShoppingCarts { get; set; } = [];
         public virtual ICollection<ProductReview> ProductReviews { get; set; } = [];
 
+        public virtual ICollection<Order> Orders { get; set; } = [];
 
     }
 }

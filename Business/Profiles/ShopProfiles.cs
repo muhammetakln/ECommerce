@@ -24,8 +24,7 @@ namespace Business.Profiles
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product != null ? src.Product.Price : 0))
                 .ForMember(dest => dest.DiscountedPrice, opt => opt.MapFrom(src =>
                     src.Product != null
-                        ? src.Product.Price * (100 - src.Product.DiscountRate) / 100
-                        : 0));
+                        ? src.Product.Price * (100 - src.Product.DiscountRate) / 100 : 0));
         }
     }
 }

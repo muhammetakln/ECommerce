@@ -376,9 +376,14 @@
                             <span class="text-primary">@genelToplam.ToString("C2")</span>
                         </div>
 
-                        <button class="btn-checkout mt-3">
-                            <i class="fa-solid fa-credit-card me-2"></i>Ödemeye Geç
-                        </button>
+                        <div class="d-grid">
+                            <form asp-action="create" asp-controller="order" method="post">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-3 py-3 shadow">
+                                    <i class="fa-solid fa-credit-card me-2"></i>Ödemeye Geç
+                                </button>
+                            </form>
+                        </div>
+
 
                         <div class="mt-4 text-center">
                             <div class="text-muted small mb-2">Güvenli Ödeme</div>

@@ -14,6 +14,8 @@ namespace Core.Abstracts
         ICartRepository CartRepository { get; }
         ICartItemRepository CartItemRepository { get; }
         ISubCategoryRepository SubCategoryRepository { get; }
+        IOrderRepository OrderRepository { get; }
+        IOrderItemRepository OrderItemRepository { get; }
         Task<int> SaveChangesAsync();
         Task <IResult> CommitAsync();
     }

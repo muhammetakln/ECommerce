@@ -243,7 +243,7 @@ namespace Utils.Generics
             // Şart yoksa tüm entity'leri al, yoksa şarta uygun olanları al
             var entities = expression == null ? _table : _table.Where(expression);
 
-            if (entities == null)
+            if (entities == null )
             {
                 return Result<IEnumerable<T>>.Failure(["No entities found"], 404);
             }

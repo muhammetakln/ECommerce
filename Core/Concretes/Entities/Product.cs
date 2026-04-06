@@ -1,4 +1,5 @@
 ﻿using Core.Abstracts.Bases;
+using System.ComponentModel.Design;
 
 namespace Core.Concretes.Entities
 {
@@ -53,8 +54,9 @@ namespace Core.Concretes.Entities
         public virtual ICollection<ProductAttribute> Attributes { get; set; } = [];
         public virtual ICollection<ProductImage> Images { get; set; } = [];
         public virtual ICollection<CartItem> CartItems { get; set; } = [];
-      public virtual ICollection<ProductReview> ProductReviews { get; set; } = [];  
-        
+        public virtual ICollection<ProductReview> ProductReviews { get; set; } = [];
+        public virtual ICollection<Order> Orders { get; set; } = [];
+
     }
 
 }

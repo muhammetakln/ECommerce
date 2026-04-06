@@ -72,7 +72,8 @@ namespace Business
             {
                 cfg.AddProfile<ShowroomProfiles>();
                 cfg.AddProfile<AuthProfiles>();
-                cfg.AddProfile<ShopProfiles>();
+                cfg.AddProfile<ShopProfiles>(); 
+                cfg.AddProfile<OrderProfiles>();
             });
 
 
@@ -107,7 +108,7 @@ namespace Business
             services.AddScoped<IShowroomService, ShowroomService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IShopService, ShopService>();
-
+            services.AddScoped<IOrderService, OrderService>();
             // ============ DÖNÜŞ ============
             /// <summary>
             /// IServiceCollection'ı geri döndürür. Bu sayede method chaining yapılabilir:
