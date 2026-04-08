@@ -14,11 +14,12 @@ namespace UI.Controllers
     {
         private readonly IOrderService service;
         private readonly UserManager<Customer> userManager;
-
-        public OrderController(IOrderService service, UserManager<Customer> userManager)
+        private readonly HttpClient client;
+        public OrderController(IOrderService service, UserManager<Customer> userManager,IHttpClientFactory factory)
         {
             this.service = service;
             this.userManager = userManager;
+            client=factory.CreateClient("payment");
         }
 
         // ============================================
@@ -145,6 +146,12 @@ namespace UI.Controllers
                 System.Diagnostics.Debug.WriteLine($"[ERROR] ChangeStatus: {ex.Message}");
                 return RedirectToAction("Index", new { id });
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> CheckOut(int id)
+        {
+            await service.CheckOutAsync(id,client);
+            return RedirectToAction("Index", new {id});
         }
     }
 }

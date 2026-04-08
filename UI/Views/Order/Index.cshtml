@@ -192,6 +192,10 @@
                 </a>
             </div>
         }
+        <form asp-action="checkout" asp-controller="order" asp-route-id="@Model.Id" method="post">
+        <button type ="sumbit" class="btn btn-outline-dark btn-sm">Siparişi Onayla</button>
+    </form>
 
     </div>
+    
 </div>

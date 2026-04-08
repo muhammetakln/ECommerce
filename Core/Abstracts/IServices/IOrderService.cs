@@ -6,41 +6,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-   
+
 
 namespace Core.Abstracts.IServices
+{
+    public interface IOrderService
     {
-        public interface IOrderService
-        {
-            // ============================================
-            // SIPARIŞ OLUŞTURMA
-            // ============================================
+        // ============================================
+        // SIPARIŞ OLUŞTURMA
+        // ============================================
 
-            /// <summary>
-            /// Sepetteki ürünlerden yeni sipariş oluşturur
-            /// </summary>
-            Task<int> ChangeOrderStatusAsync(int orderId,OrderStatus status);
+        /// <summary>
+        /// Sepetteki ürünlerden yeni sipariş oluşturur
+        /// </summary>
+        Task<int> ChangeOrderStatusAsync(int orderId, OrderStatus status);
 
-            /// <summary>
-            /// Manuel sipariş oluşturur
-            /// </summary>
-            Task<int> CreateOrderAsync(string customerId);
+        /// <summary>
+        /// Manuel sipariş oluşturur
+        /// </summary>
+        Task<int> CreateOrderAsync(string customerId);
 
-            // ============================================
-            // SIPARIŞ GÖRÜNTÜLEME
-            // ============================================
+        // ============================================
+        // SIPARIŞ GÖRÜNTÜLEME
+        // ============================================
 
-            /// <summary>
-            /// Müşterinin tüm siparişlerini getirir
-            /// </summary>
-          
-            Task <OrderDto> GetOrdersAsync(int orderId,string customerId);
+        /// <summary>
+        /// Müşterinin tüm siparişlerini getirir
+        /// </summary>
 
-            /// <summary>
-            /// Sipariş detayını getirir (Items dahil)
-            /// </summary>
-           
-        }
+        Task<OrderDto> GetOrdersAsync(int orderId, string customerId);
+
+        /// <summary>
+        /// Sipariş detayını getirir (Items dahil)
+        /// </summary>
+        Task CheckOutAsync(int orderId,HttpClient client);
     }
+}
 
 
